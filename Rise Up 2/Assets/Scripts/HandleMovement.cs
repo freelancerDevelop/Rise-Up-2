@@ -1,40 +1,38 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class HandleMovement : MonoBehaviour {
 
-	private Vector2 mousePos;
 	private Rigidbody2D rb;
-
-	private Vector2 offsetClicked;
-	private Vector2 offsetReleased;
+	private Vector2 mousePos;
+	private Vector2 offset;
+	private bool clicked;
 
 	private void Start () {
 		rb = GetComponent<Rigidbody2D> ();
-		offsetReleased = transform.position;
+		offset = transform.position;
 	}
 
 	private void FixedUpdate () {
-		mousePos = Camera.main.ScreenToWorldPoint (Input.mousePosition);
-
 		if (Input.GetMouseButton (0)) {
+			mousePos = Camera.main.ScreenToWorldPoint (Input.mousePosition);
+
+			if (!clicked) {
+				offset = (Vector2) transform.position - mousePos + new Vector2 (0, Camera.main.GetComponent<CameraMovement> ().cameraSpeed);
+				clicked = true;
+			}
+
 			Vector2 newPos = new Vector2 (
-				Mathf.Clamp(mousePos.x + offsetClicked.x, GameManager.gm.cameraEdges.w + 0.32f, GameManager.gm.cameraEdges.y - 0.32f),
-				mousePos.y + offsetClicked.y
+				Mathf.Clamp (mousePos.x + offset.x, GameManager.gm.cameraEdges.w + 0.32f, GameManager.gm.cameraEdges.y - 0.32f),
+				mousePos.y + offset.y
 			);
 
 			rb.MovePosition (newPos);
-			offsetReleased = newPos - (Vector2) Camera.main.transform.position;
 		} //Clicked
 		else {
-			Vector2 newPos = new Vector2 (
-				Mathf.Clamp (Camera.main.transform.position.x + offsetReleased.x, GameManager.gm.cameraEdges.w + 0.32f, GameManager.gm.cameraEdges.y - 0.32f),
-				Camera.main.transform.position.y + offsetReleased.y
-			);
-
-			rb.MovePosition (newPos);
-			offsetClicked = newPos - mousePos;
+			rb.MovePosition (transform.position + new Vector3 (0, Camera.main.GetComponent<CameraMovement> ().cameraSpeed, 0));
+			clicked = false;
 		} //Released
 	}
 
